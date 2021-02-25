@@ -46,3 +46,22 @@ dart_result <- function(shots_df) {
     )
   )
 }  
+dart_result_cat <- function(shots_df) {
+  pc <- polar_coords(shots_df)
+  
+  pc$phi <- pc$phi/(2*pi) + 1/40
+  pc$phi <- pc$phi - floor(pc$phi)
+  
+  number <- numbers[ceiling(20 * pc$phi)]
+  return(
+    case_when(
+      pc$r < rings[1] ~ "Bulls Eye",
+      pc$r < rings[2] ~ "Half Bull",
+      pc$r < rings[3] ~ paste0(number, " (inner)"),
+      pc$r < rings[4] ~ paste0("Triple ", number),
+      pc$r < rings[5] ~ paste0(number, " (outer)"),
+      pc$r < rings[6] ~ paste0("Double ", number),
+      TRUE ~ "Missed board"
+    )
+  )
+} 

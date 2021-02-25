@@ -2,7 +2,7 @@ library(ellipse)
 library(ggforce)
 library(gridExtra)
 
-source("Dart_Optimizer_support_1.R")
+source("Dart_Collector_support_1.R")
 
 # radii and center(s) of circles of dart board
 circle_df = tibble(x = 0, y = 0, r = rings)
