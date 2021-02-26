@@ -3,31 +3,48 @@ library(shiny)
 source("Dart_Collector_support_2.R")
 
 ui <- fluidPage(
-    titlePanel("Collect data on your dart throws"),
-    sidebarLayout(
-        sidebarPanel(
-            radioButtons(
-                "point_type",
-                label = "Kind of point to mark",
-                choices = c("Target point", "Hit point")
+    titlePanel("Data Collection and Analysis on your dart throws"),
+    tabsetPanel(
+        tabPanel("Data collection",
+            sidebarLayout(
+                sidebarPanel(
+                    radioButtons(
+                        "point_type",
+                        label = "Kind of point to mark",
+                        choices = c("Target point", "Hit point")
+                    ),
+                    actionButton("reset_target", label = "Reset target point to center!")
+                ),
+        
+                mainPanel(
+                   plotOutput("dart_board", click = "board_click"),
+                   splitLayout(
+                       tableOutput("current_choices"),
+                       actionButton("save_throw", label = "Save throw!")
+                   )
+                )
             ),
-            actionButton("reset_target", label = "Reset target point to center!")
+            sidebarLayout(
+                sidebarPanel(
+                    actionButton("delete_all", "Delete all throws!"),
+                    actionButton("send_to_analysis", "Send throws to analysis section"),
+                    downloadButton("download_throws", "Download throws as .csv")
+                ),
+                mainPanel(
+                    tableOutput("data_collected")
+                )
+            )
         ),
-
-        mainPanel(
-           plotOutput("dart_board", click = "board_click"),
-           splitLayout(
-               tableOutput("current_choices"),
-               actionButton("save_throw", label = "Save throw!")
-           ),
-           tableOutput("data_collected")
-        )
+        tabPanel("Analysis data management"),
+        tabPanel("Visualization and Estimation"),
+        tabPanel("Statistical testing"),
+        tabPanel("Nonparametric simulation")
     )
 )
 
 server <- function(input, output) {
     # initialize reactive values
-    board = reactiveValues(
+    board <- reactiveValues(
         points = tibble(
             type = c("target", "hit"),
             x = c(0, 0),
@@ -35,7 +52,7 @@ server <- function(input, output) {
             cat_result = c("Bulls Eye", "Bulls Eye")
         ) 
     )
-    data = reactiveValues(
+    data <- reactiveValues(
         collected = tibble(
             x_target = NULL,
             y_target = NULL,
@@ -54,6 +71,11 @@ server <- function(input, output) {
         }
         board$points <- board$points %>%
             mutate(cat_result = dart_result_cat(board$points %>% select(x,y)))
+    })
+    
+    # Reset target button
+    observeEvent(input$reset_target, {
+        board$points[board$points$type == "target", c("x", "y", "cat_result")] <-list(x = 0, y = 0, cat_result = "Bulls Eye")
     })
     
     # add throw to collected_data, when respective buttton is hit
@@ -90,6 +112,27 @@ server <- function(input, output) {
     output$data_collected <- renderTable({
         data$collected
     })
+    
+    # Delete all throws button
+    observeEvent(input$delete_all, {
+        data$collected <- tibble(
+            x_target = NULL,
+            y_target = NULL,
+            x_hit = NULL,
+            y_hit = NULL,
+            hit_result = NULL
+        )
+    })
+    
+    # Download .csv file
+    output$download_throws <- downloadHandler(
+        filename = function() {
+            "dart_throws.csv"
+        },
+        content = function(file) {
+            write_csv(data$collected, file)
+        }
+    )
 }
 
 # Run the application 
