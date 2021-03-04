@@ -2,37 +2,13 @@ library(shiny)
 library(DT)
 
 source("Dart_Collector_support_2.R")
+source("Dart_Collector_ShinySupport.R")
+source("collection_panel.R")
 
 ui <- fluidPage(
     titlePanel("Data Collection and Analysis on your dart throws"),
     tabsetPanel(
-        tabPanel("Data collection",
-            sidebarLayout(
-                sidebarPanel(
-                    radioButtons(
-                        "point_type",
-                        label = "Kind of point to mark",
-                        choices = c("Target point", "Hit point")
-                    ),
-                    actionButton("reset_target", label = "Reset target point to center!"),
-                    verbatimTextOutput("current_choices"),
-                    actionButton("save_throw", label = "Save throw!")
-                ),
-                mainPanel(
-                   plotOutput("dart_board", click = "board_click")
-                )
-            ),
-            sidebarLayout(
-                sidebarPanel(
-                    actionButton("delete_all", label = "Delete all throws!", icon = icon("trash")),
-                    actionButton("send_to_analysis", "Send throws to analysis section"),
-                    downloadButton("download_throws", "Download throws as .csv")
-                ),
-                mainPanel(
-                    dataTableOutput("data_collected")
-                )
-            )
-        ),
+        collection_panel_ui,
         tabPanel("Data management"),
         tabPanel("Visualization and Estimation"),
         tabPanel("Statistical testing"),
@@ -40,7 +16,7 @@ ui <- fluidPage(
     )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
     # initialize reactive values
     board <- reactiveValues(
         points = tibble(
@@ -52,12 +28,15 @@ server <- function(input, output) {
     )
     data <- reactiveValues(
         collected = tibble(
+            row_num = numeric(),
             x_target = numeric(),
             y_target = numeric(),
             x_hit = numeric(),
             y_hit = numeric(),
-            hit_result = character()
-        )
+            hit_result = character(),
+            delete = character()
+        ),
+        counter = 0
     )
     
     # note point clicked on board plot
@@ -78,12 +57,15 @@ server <- function(input, output) {
     
     # add throw to collected_data, when respective button is hit
     observeEvent(input$save_throw, {
+        data$counter <- data$counter + 1
         new_row <- tibble(
+            row_num = data$counter,
             x_target = board$points %>% filter(type == "target") %>% select(x) %>% pull(),
             y_target = board$points %>% filter(type == "target") %>% select(y) %>% pull(),
             x_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
             y_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
-            hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull()
+            hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
+            delete = get_delete_button("delete_collect", data$counter)
         )
         data$collected <- data$collected %>%
             bind_rows(new_row)
@@ -92,10 +74,10 @@ server <- function(input, output) {
     # show board_plot including current target and hit point
     output$dart_board <- renderPlot({
         dart_board_plt +
-             geom_point(data = board$points, 
-                        mapping = aes(x = x, y = y, color = type, shape = type),
-                        size = 3, 
-                        stroke = 2) +
+            geom_point(data = board$points, 
+                       mapping = aes(x = x, y = y, color = type, shape = type),
+                       size = 3, 
+                       stroke = 2) +
             scale_shape_manual(values = c(4, 3)) + 
             scale_color_manual(values = c("red", "darkgreen"))
     })
@@ -122,10 +104,17 @@ server <- function(input, output) {
         )
     })
     
+    # "Delete Row" button
+    observeEvent(input$deletePressed, {
+        data$collected <- data$collected %>%
+            filter(row_num != parse_delete_event(input$deletePressed))
+    })
+    
     # show table of data collected up to this point
     output$data_collected <- DT::renderDataTable({
         data$collected %>%
-            datatable() %>%
+            select(-row_num) %>%
+            datatable(escape = FALSE) %>%
             formatRound(columns = c("x_target", "y_target", "x_hit", "y_hit"), digits = 3)
     }
     )
@@ -133,11 +122,13 @@ server <- function(input, output) {
     # "Delete all throws" button
     observeEvent(input$delete_all, {
         data$collected <- tibble(
+            row_num = numeric(),
             x_target = numeric(),
             y_target = numeric(),
             x_hit = numeric(),
             y_hit = numeric(),
-            hit_result = character()
+            hit_result = character(),
+            delete = character()
         )
     })
     
