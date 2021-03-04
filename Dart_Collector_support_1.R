@@ -46,6 +46,7 @@ dart_result <- function(shots_df) {
     )
   )
 }  
+
 dart_result_cat <- function(shots_df) {
   pc <- polar_coords(shots_df)
   
