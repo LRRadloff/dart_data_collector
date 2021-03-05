@@ -153,7 +153,9 @@ collection_panel_server <- function(id) {
           "dart_throws.csv"
         },
         content = function(file) {
-          write_csv(data$collected, file)
+          data$collected %>%
+            select(-c(row_num, delete)) %>%
+            write_csv(file)
         }
       )
     }
