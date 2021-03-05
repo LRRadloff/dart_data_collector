@@ -8,7 +8,7 @@ source("collection_panel.R")
 ui <- fluidPage(
     titlePanel("Data Collection and Analysis on your dart throws"),
     tabsetPanel(
-        collection_panel_ui,
+        collection_panel_ui("collection"),
         tabPanel("Data management"),
         tabPanel("Visualization and Estimation"),
         tabPanel("Statistical testing"),
@@ -17,130 +17,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-    # initialize reactive values
-    board <- reactiveValues(
-        points = tibble(
-            type = c("target", "hit"),
-            x = c(0, 0),
-            y = c(0, 0),
-            cat_result = c("Bulls Eye", "Bulls Eye")
-        ) 
-    )
-    data <- reactiveValues(
-        collected = tibble(
-            row_num = numeric(),
-            x_target = numeric(),
-            y_target = numeric(),
-            x_hit = numeric(),
-            y_hit = numeric(),
-            hit_result = character(),
-            delete = character()
-        ),
-        counter = 0
-    )
-    
-    # note point clicked on board plot
-    observeEvent(input$board_click, {
-        if (input$point_type == "Target point") {
-            board$points[board$points$type == "target", c("x", "y")] <- list(x = input$board_click$x, y = input$board_click$y)
-        } else if (input$point_type == "Hit point") {
-            board$points[board$points$type == "hit", c("x", "y")] <- list(x = input$board_click$x, y = input$board_click$y)
-        }
-        board$points <- board$points %>%
-            mutate(cat_result = dart_result_cat(board$points %>% select(x,y)))
-    })
-    
-    # "Reset target" button
-    observeEvent(input$reset_target, {
-        board$points[board$points$type == "target", c("x", "y", "cat_result")] <-list(x = 0, y = 0, cat_result = "Bulls Eye")
-    })
-    
-    # add throw to collected_data, when respective button is hit
-    observeEvent(input$save_throw, {
-        data$counter <- data$counter + 1
-        new_row <- tibble(
-            row_num = data$counter,
-            x_target = board$points %>% filter(type == "target") %>% select(x) %>% pull(),
-            y_target = board$points %>% filter(type == "target") %>% select(y) %>% pull(),
-            x_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
-            y_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
-            hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
-            delete = get_delete_button("delete_collect", data$counter)
-        )
-        data$collected <- data$collected %>%
-            bind_rows(new_row)
-    })
-    
-    # show board_plot including current target and hit point
-    output$dart_board <- renderPlot({
-        dart_board_plt +
-            geom_point(data = board$points, 
-                       mapping = aes(x = x, y = y, color = type, shape = type),
-                       size = 3, 
-                       stroke = 2) +
-            scale_shape_manual(values = c(4, 3)) + 
-            scale_color_manual(values = c("red", "darkgreen"))
-    })
-    
-    # show current points selected, including the corresponding results as a category
-    # output$current_choices <- renderTable({
-    #     board$points
-    # },
-    # digits = 3)
-    
-    output$current_choices <- renderText({
-        x_target <- board$points %>% filter(type == "target") %>% select(x) %>% pull() %>% round(3)
-        y_target <- board$points %>% filter(type == "target") %>% select(y) %>% pull() %>% round(3)
-        x_hit <- board$points %>% filter(type == "hit") %>% select(x) %>% pull() %>% round(3)
-        y_hit <- board$points %>% filter(type == "hit") %>% select(y) %>% pull() %>% round(3)
-        cat_target <- board$points %>% filter(type == "target") %>% select(cat_result) %>% pull()
-        cat_hit <- board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull()
-        
-        paste0(
-            "Current target:\n",
-            "x: ", x_target, ", y: ", y_target, " (", cat_target, ")\n",
-            "Current hit point:\n",
-            "x: ", x_hit, ", y: ", y_hit, " (", cat_hit, ")"
-        )
-    })
-    
-    # "Delete Row" button
-    observeEvent(input$deletePressed, {
-        data$collected <- data$collected %>%
-            filter(row_num != parse_delete_event(input$deletePressed))
-    })
-    
-    # show table of data collected up to this point
-    output$data_collected <- DT::renderDataTable({
-        data$collected %>%
-            select(-row_num) %>%
-            datatable(escape = FALSE) %>%
-            formatRound(columns = c("x_target", "y_target", "x_hit", "y_hit"), digits = 3)
-    }
-    )
-    
-    # "Delete all throws" button
-    observeEvent(input$delete_all, {
-        data$collected <- tibble(
-            row_num = numeric(),
-            x_target = numeric(),
-            y_target = numeric(),
-            x_hit = numeric(),
-            y_hit = numeric(),
-            hit_result = character(),
-            delete = character()
-        )
-    })
-    
-    # Download .csv file
-    output$download_throws <- downloadHandler(
-        filename = function() {
-            "dart_throws.csv"
-        },
-        content = function(file) {
-            write_csv(data$collected, file)
-        }
-    )
+    collection_panel_server("collection")
 }
 
 # Run the application 

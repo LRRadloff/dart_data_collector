@@ -1,31 +1,33 @@
-collection_panel_ui <- tabPanel("Data collection",
-  sidebarLayout(
-    sidebarPanel(
-      radioButtons(
-        "point_type",
-        label = "Kind of point to mark",
-        choices = c("Target point", "Hit point")
+collection_panel_ui <- function(id, label = "collection") {
+  ns <- NS(id)
+  tabPanel("Data collection",
+    sidebarLayout(
+      sidebarPanel(
+        radioButtons(
+          ns("point_type"),
+          label = "Kind of point to mark",
+          choices = c("Target point", "Hit point")
+        ),
+        actionButton(ns("reset_target"), label = "Reset target point to center!"),
+        verbatimTextOutput(ns("current_choices")),
+        actionButton(ns("save_throw"), label = "Save throw!")
       ),
-      actionButton("reset_target", label = "Reset target point to center!"),
-      verbatimTextOutput("current_choices"),
-      actionButton("save_throw", label = "Save throw!")
+      mainPanel(
+        plotOutput(ns("dart_board"), click = ns("board_click"))
+      )
     ),
-    mainPanel(
-      plotOutput("dart_board", click = "board_click")
-    )
-  ),
-  sidebarLayout(
-    sidebarPanel(
-      actionButton("delete_all", label = "Delete all throws!", icon = icon("trash")),
-      actionButton("send_to_analysis", "Send throws to analysis section"),
-      downloadButton("download_throws", "Download throws as .csv")
-    ),
-    mainPanel(
-      dataTableOutput("data_collected")
+    sidebarLayout(
+      sidebarPanel(
+        actionButton(ns("delete_all"), label = "Delete all throws!", icon = icon("trash")),
+        actionButton(ns("send_to_analysis"), "Send throws to analysis section"),
+        downloadButton(ns("download_throws"), "Download throws as .csv")
+      ),
+      mainPanel(
+        dataTableOutput(ns("data_collected"))
+      )
     )
   )
-)
-
+}
 collection_panel_server <- function(id) {
   moduleServer(
     id, 
@@ -78,7 +80,7 @@ collection_panel_server <- function(id) {
           x_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
           y_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
           hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
-          delete = get_delete_button("delete_collect", data$counter)
+          delete = get_delete_button("delete_collect", NS(id), data$counter)
         )
         data$collected <- data$collected %>%
           bind_rows(new_row)
