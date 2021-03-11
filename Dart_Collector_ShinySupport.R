@@ -1,12 +1,12 @@
 # haven't understood the definiton of onclick completely
 # source: https://stefanengineering.com/2019/07/06/delete-rows-from-shiny-dt-datatable/
-get_delete_button <- function(id_stem, name_space, counter) {
+get_delete_button <- function(id_stem, name_space, id_pressed, counter) {
   as.character(
     actionButton(
       name_space(paste(id_stem, counter, sep = "_")),
       label = NULL,
       icon = icon("trash"),
-      onclick = paste0('Shiny.setInputValue(\"', name_space('deletePressed'), '\", this.id, {priority: "event"})')
+      onclick = paste0('Shiny.setInputValue(\"', name_space(id_pressed), '\", this.id, {priority: "event"})')
     )
   )  
 }

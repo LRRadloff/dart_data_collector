@@ -80,7 +80,7 @@ collection_panel_server <- function(id) {
           x_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
           y_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
           hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
-          delete = get_delete_button("delete_collect", NS(id), data$counter)
+          delete = get_delete_button("delete_collect", NS(id), "deletePressed", data$counter)
         )
         data$collected <- data$collected %>%
           bind_rows(new_row)
@@ -96,12 +96,6 @@ collection_panel_server <- function(id) {
           scale_shape_manual(values = c(4, 3)) + 
           scale_color_manual(values = c("red", "darkgreen"))
       })
-      
-      # show current points selected, including the corresponding results as a category
-      # output$current_choices <- renderTable({
-      #     board$points
-      # },
-      # digits = 3)
       
       output$current_choices <- renderText({
         x_target <- board$points %>% filter(type == "target") %>% select(x) %>% pull() %>% round(3)
@@ -157,6 +151,12 @@ collection_panel_server <- function(id) {
             select(-c(row_num, delete)) %>%
             write_csv(file)
         }
+      )
+      
+      # return values for handling "send_to_analysis" button in management module
+      return(
+        list(send = reactive({ input$send_to_analysis }),
+             throws = reactive({ data$collected }))
       )
     }
   )

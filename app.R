@@ -18,8 +18,11 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-    collection_panel_server("collection")
-    management_panel_server("management")
+    collection <- collection_panel_server("collection")
+    management_panel_server("management", 
+                            collection$send,
+                            collection$throws
+                            )
 }
 
 # Run the application 
