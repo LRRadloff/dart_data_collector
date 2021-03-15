@@ -78,7 +78,7 @@ collection_panel_server <- function(id) {
           x_target = board$points %>% filter(type == "target") %>% select(x) %>% pull(),
           y_target = board$points %>% filter(type == "target") %>% select(y) %>% pull(),
           x_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
-          y_hit = board$points %>% filter(type == "hit") %>% select(x) %>% pull(),
+          y_hit = board$points %>% filter(type == "hit") %>% select(y) %>% pull(),
           hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
           delete = get_delete_button("delete_collect", NS(id), "deletePressed", data$counter)
         )
