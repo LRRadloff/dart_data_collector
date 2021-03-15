@@ -6,7 +6,7 @@ management_panel_ui <- function(id, label = "management") {
         fileInput(ns("dart_throws_file"), "Upload saved dart throws",
                   multiple = FALSE,
                   accept = ".csv"),
-        actionButton(ns("upload_file"), label = "Upload throws", icon = icon("upload")),
+        actionButton(ns("upload_file_button"), label = "Upload throws", icon = icon("upload")),
         tags$hr(),
         actionButton(ns("delete_all_analysis"), label = "Delete all throws!", icon = icon("trash")),
         downloadButton(ns("download_analysis_data"), "Download throws as .csv")         
@@ -41,48 +41,59 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
       )
       
       # "Upload Throws" button
-      # TODO: handle case of no file being loaded
-      observeEvent(input$upload_file, {
-        new_throws <- read_csv(input$dart_throws_file$datapath)
-        no_new_throws <- nrow(new_throws)
-        new_throws <- new_throws %>%
-          mutate(
-            row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
-            origin = paste0("upload_", analysis$upload_counter + 1),
-            delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+      # TODO: handle case of upload of data already in the analysis data set.
+      observeEvent(input$upload_file_button, {
+        if (is.null(input$dart_throws_file)) {
+          showModal(modalDialog(title = "Please choose a file.",
+                                "You haven't selected a file for upload, yet.",
+                                footer = modalButton("Got it.")))
+        } else {
+          new_throws <- read_csv(input$dart_throws_file$datapath)
+          no_new_throws <- nrow(new_throws)
+          new_throws <- new_throws %>%
+            mutate(
+              row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
+              origin = paste0("upload_", analysis$upload_counter + 1),
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+            )
+          analysis$data <- bind_rows(
+            analysis$data,
+            new_throws
           )
-        analysis$data <- bind_rows(
-          analysis$data,
-          new_throws
-        )
-        analysis$counter <- analysis$counter + no_new_throws
-        analysis$upload_counter <- analysis$upload_counter + 1
+          analysis$counter <- analysis$counter + no_new_throws
+          analysis$upload_counter <- analysis$upload_counter + 1
+        }
       })
       
       # TODO: handle case of empty data_collected DF
       # TODO: Handle case of throws coming in the second time
       observeEvent(click_send_to_analysis(),{
- 
-        # get values from collection data
-        new_throws <- data_collected() %>%
-          select(-c(row_num, delete))
-        no_new_throws <- nrow(new_throws)
-        
-        # add new data to analysis data
-        new_throws <- new_throws %>%
-          mutate(
-            row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
-            origin = paste0("collection_", analysis$collect_counter + 1),
-            delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+        if (nrow(data_collected()) == 0) {
+          showModal(modalDialog(title = "Please collect some throws.",
+                                "There are no data on throws to be sent to the analysis section, yet.",
+                                footer = modalButton("Got it.")))
+        } else {
+          # get values from collection data
+          new_throws <- data_collected() %>%
+            select(-c(row_num, delete))
+          no_new_throws <- nrow(new_throws)
+          
+          # add new data to analysis data
+          new_throws <- new_throws %>%
+            mutate(
+              row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
+              origin = paste0("collection_", analysis$collect_counter + 1),
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+            )
+          analysis$data <- bind_rows(
+            analysis$data,
+            new_throws
           )
-        analysis$data <- bind_rows(
-          analysis$data,
-          new_throws
-        )
-        
-        # increment counters
-        analysis$counter <- analysis$counter + no_new_throws
-        analysis$collect_counter <- analysis$collect_counter + 1
+          
+          # increment counters
+          analysis$counter <- analysis$counter + no_new_throws
+          analysis$collect_counter <- analysis$collect_counter + 1
+        }
       })
       
       # "Delete row" buttons for analysis data
@@ -99,6 +110,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
           formatRound(columns = c("x_target", "y_target", "x_hit", "y_hit"), digits = 3)
       }
       )
+      
+      return(reactive({analysis$data}))
     }
   )
 }
