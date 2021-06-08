@@ -1,7 +1,7 @@
 library(shiny)
 library(DT)
 
-source("Dart_Collector_support_2.R")
+source("Dart_Collector_support_plots.R")
 source("Dart_Collector_ShinySupport.R")
 source("collection_panel.R")
 source("management_panel.R")

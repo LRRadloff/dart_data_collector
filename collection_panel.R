@@ -130,15 +130,7 @@ collection_panel_server <- function(id) {
       
       # "Delete all throws" button
       observeEvent(input$delete_all, {
-        data$collected <- tibble(
-          row_num = numeric(),
-          x_target = numeric(),
-          y_target = numeric(),
-          x_hit = numeric(),
-          y_hit = numeric(),
-          hit_result = character(),
-          delete = character()
-        )
+        data$collected <- data$collected %>% filter(FALSE)
       })
       
       # Download .csv file

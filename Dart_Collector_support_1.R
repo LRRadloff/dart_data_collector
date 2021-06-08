@@ -66,3 +66,9 @@ dart_result_cat <- function(shots_df) {
     )
   )
 } 
+
+cat_target <- function(x, y) {
+  return(
+    paste(round(x, 2), round(y, 2), sep = "_")
+  )
+}

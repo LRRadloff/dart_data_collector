@@ -33,7 +33,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
           y_hit = numeric(),
           hit_result = character(),
           origin = character(),
-          delete = character()
+          delete = character(),
+          cat_target = character()
         ),
         counter = 0,
         upload_counter = 0,
@@ -54,7 +55,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
             mutate(
               row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
               origin = paste0("upload_", analysis$upload_counter + 1),
-              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x)),
+              cat_target = cat_target(x_target, y_target)
             )
           analysis$data <- bind_rows(
             analysis$data,
@@ -83,7 +85,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
             mutate(
               row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
               origin = paste0("collection_", analysis$collect_counter + 1),
-              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x)),
+              cat_target = cat_target(x_target, y_target)
             )
           analysis$data <- bind_rows(
             analysis$data,
@@ -102,10 +105,27 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
           filter(row_num != parse_delete_event(input$delete_analysis_pressed))
       })
       
+      # "Delete all throws" button
+      observeEvent(input$delete_all_analysis, {
+        analysis$data <- analysis$data %>% filter(FALSE)
+      })
+      
+      # Download .csv file
+      output$download_analysis_data <- downloadHandler(
+        filename = function() {
+          "dart_throws.csv"
+        },
+        content = function(file) {
+          analysis$data %>%
+            select(-c(row_num, delete, cat_target)) %>%
+            write_csv(file)
+        }
+      )
+      
       # Output table: current analysis data
       output$analysis_data <- DT::renderDataTable({
         analysis$data %>%
-          select(-row_num) %>%
+          select(-row_num, -cat_target) %>%
           datatable(escape = FALSE, options = list(pageLength = 100)) %>%
           formatRound(columns = c("x_target", "y_target", "x_hit", "y_hit"), digits = 3)
       }
