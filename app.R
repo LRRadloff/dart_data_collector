@@ -6,6 +6,7 @@ source("Dart_Collector_ShinySupport.R")
 source("collection_panel.R")
 source("management_panel.R")
 source("visualization_panel.R")
+source("test_panel.R")
 
 ui <- fluidPage(
     titlePanel("Data Collection and Analysis on your dart throws"),
@@ -13,7 +14,7 @@ ui <- fluidPage(
         collection_panel_ui("collection"),
         management_panel_ui("management"),
         visualization_panel_ui("visualization"),
-        tabPanel("Statistical testing"),
+        test_panel_ui("testing"),
         tabPanel("Nonparametric simulation")
     )
 )
@@ -25,6 +26,7 @@ server <- function(input, output, session) {
                                 collection$throws
                             )
     visualization_panel_server("visualization", analysis_data)
+    test_panel_server("testing", analysis_data)
 }
 
 # Run the application 
