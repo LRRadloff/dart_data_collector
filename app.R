@@ -14,8 +14,7 @@ ui <- fluidPage(
         collection_panel_ui("collection"),
         management_panel_ui("management"),
         visualization_panel_ui("visualization"),
-        test_panel_ui("testing"),
-        tabPanel("Nonparametric simulation")
+        test_panel_ui("testing")
     )
 )
 
