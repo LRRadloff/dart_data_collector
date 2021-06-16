@@ -2,7 +2,7 @@ library(ellipse)
 library(ggforce)
 library(gridExtra)
 
-source("Dart_Collector_support_1.R")
+source("support_functions.R")
 
 # radii and center(s) of circles of dart board
 circle_df = tibble(x = 0, y = 0, r = rings)
@@ -92,8 +92,8 @@ centered_throws_plot <- function(centered_analysis_data, color_by_target = FALSE
 raw_throws_plot <- function(analysis_data) {
   analysis_data <- analysis_data %>%
     mutate(
-      x_target = round(x_target, 2),
-      y_target = round(y_target, 2)
+      x_target = round(x_target, 1),
+      y_target = round(y_target, 1)
     )
   
   # compute avg hitting point per target

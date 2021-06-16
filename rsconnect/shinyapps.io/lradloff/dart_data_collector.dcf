@@ -1,0 +1,14 @@
+name: dart_data_collector
+title: dart_data_collector
+username:
+account: lradloff
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4281042
+bundleId: 4724459
+url: https://lradloff.shinyapps.io/dart_data_collector/
+when: 1623869880.37394
+lastSyncTime: 1623869880.37394
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: test_throws

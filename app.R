@@ -1,8 +1,8 @@
 library(shiny)
 library(DT)
 
-source("Dart_Collector_support_plots.R")
-source("Dart_Collector_ShinySupport.R")
+source("plot_support_functions.R")
+source("delete_button_support.R")
 source("collection_panel.R")
 source("management_panel.R")
 source("visualization_panel.R")
