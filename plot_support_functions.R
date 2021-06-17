@@ -1,6 +1,7 @@
 library(ellipse)
 library(ggforce)
 library(gridExtra)
+library(ggnewscale)
 
 source("support_functions.R")
 
@@ -89,11 +90,11 @@ centered_throws_plot <- function(centered_analysis_data, color_by_target = FALSE
   }
 }
 
-raw_throws_plot <- function(analysis_data) {
+raw_throws_plot <- function(analysis_data, alpha = 1, no_decimals = 2) {
   analysis_data <- analysis_data %>%
     mutate(
-      x_target = round(x_target, 1),
-      y_target = round(y_target, 1)
+      x_target = round(x_target, no_decimals),
+      y_target = round(y_target, no_decimals)
     )
   
   # compute avg hitting point per target
@@ -122,6 +123,7 @@ raw_throws_plot <- function(analysis_data) {
                   y = y,
                   color = cat_target,
                   shape = type),
+    alpha = alpha,
     size = 3,
     stroke = 2
   ) 
@@ -130,5 +132,45 @@ raw_throws_plot <- function(analysis_data) {
     dart_board_plt +
       plot_points +
       scale_shape_manual(values = c(4, 1, 3))
+  )
+}
+
+raw_throws_plot_without_mean <- function(analysis_data, alpha = 1, no_decimals = 2, legend = FALSE) {
+  analysis_data <- analysis_data %>%
+    mutate(
+      x_target = round(x_target, no_decimals),
+      y_target = round(y_target, no_decimals)
+    )
+  
+  # get unique target points
+  target_point_data <- analysis_data %>%
+    group_by(cat_target) %>%
+    summarize(x = x_target[1],
+              y = y_target[1])
+  
+  
+  # bind all points to be plotted together in one dataframe
+  plot_data <- analysis_data %>%
+    mutate(x = x_hit, y = y_hit) %>%
+    select(cat_target, x, y) %>%
+    bind_rows("hit" = ., "target" = target_point_data, .id = "type")
+  
+  # generate geom object of all points to be plotted
+  plot_points <- geom_point(
+    data = plot_data,
+    mapping = aes(x = x,
+                  y = y,
+                  color = cat_target,
+                  shape = type),
+    alpha = alpha,
+    size = 3,
+    stroke = 2,
+    show.legend = legend
+  ) 
+  
+  return(
+    dart_board_plt +
+      plot_points +
+      scale_shape_manual(values = c(4, 3))
   )
 }

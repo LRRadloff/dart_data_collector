@@ -49,6 +49,7 @@ collection_panel_server <- function(id) {
           x_hit = numeric(),
           y_hit = numeric(),
           hit_result = character(),
+          cat_target = character(),
           delete = character()
         ),
         counter = 0
@@ -81,22 +82,27 @@ collection_panel_server <- function(id) {
           y_hit = board$points %>% filter(type == "hit") %>% select(y) %>% pull(),
           hit_result = board$points %>% filter(type == "hit") %>% select(cat_result) %>% pull(),
           delete = get_delete_button("delete_collect", NS(id), "deletePressed", data$counter)
-        )
+        ) %>%
+          mutate(cat_target = cat_target(x_target, y_target))
+        
         data$collected <- data$collected %>%
           bind_rows(new_row)
       })
       
       # show board_plot including current target and hit point
       output$dart_board <- renderPlot({
-        dart_board_plt +
-          geom_point(data = board$points, 
+        raw_throws_plot_without_mean(data$collected, alpha = 0.5) +
+          new_scale("color") +
+          geom_point(data = board$points,
                      mapping = aes(x = x, y = y, color = type, shape = type),
-                     size = 3, 
+                     size = 3,
                      stroke = 2) +
-          scale_shape_manual(values = c(4, 3)) + 
+          scale_shape_manual(values = c(4, 3)) +
           scale_color_manual(values = c("red", "darkgreen"))
       })
       
+      # information about current choices of hit and target points
+      # as cartesian coordinates
       output$current_choices <- renderText({
         x_target <- board$points %>% filter(type == "target") %>% select(x) %>% pull() %>% round(3)
         y_target <- board$points %>% filter(type == "target") %>% select(y) %>% pull() %>% round(3)
@@ -122,7 +128,7 @@ collection_panel_server <- function(id) {
       # show table of data collected up to this point
       output$data_collected <- DT::renderDataTable({
         data$collected %>%
-          select(-row_num) %>%
+          select(-row_num, -cat_target) %>%
           datatable(escape = FALSE) %>%
           formatRound(columns = c("x_target", "y_target", "x_hit", "y_hit"), digits = 3)
       }

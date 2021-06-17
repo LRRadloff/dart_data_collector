@@ -67,7 +67,7 @@ dart_result_cat <- function(shots_df) {
   )
 } 
 
-cat_target <- function(x, y, no_decimals = 1) {
+cat_target <- function(x, y, no_decimals = 2) {
   return(
     paste(round(x, no_decimals), round(y, no_decimals), sep = "_")
   )

@@ -55,8 +55,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
             mutate(
               row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
               origin = paste0("upload_", analysis$upload_counter + 1),
-              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x)),
-              cat_target = cat_target(x_target, y_target)
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))#,
+              #cat_target = cat_target(x_target, y_target)
             )
           analysis$data <- bind_rows(
             analysis$data,
@@ -85,8 +85,8 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
             mutate(
               row_num = (analysis$counter + 1):(analysis$counter + no_new_throws),
               origin = paste0("collection_", analysis$collect_counter + 1),
-              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x)),
-              cat_target = cat_target(x_target, y_target)
+              delete = map_chr(.x = row_num,  ~get_delete_button("delete_analysis", NS(id), "delete_analysis_pressed",.x))#,
+              #cat_target = cat_target(x_target, y_target)
             )
           analysis$data <- bind_rows(
             analysis$data,
@@ -117,7 +117,7 @@ management_panel_server <- function(id, click_send_to_analysis = NULL, data_coll
         },
         content = function(file) {
           analysis$data %>%
-            select(-c(row_num, delete, cat_target)) %>%
+            select(-c(row_num, delete)) %>%
             write_csv(file)
         }
       )
