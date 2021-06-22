@@ -1,6 +1,18 @@
 collection_panel_ui <- function(id, label = "collection") {
   ns <- NS(id)
   tabPanel("Data collection",
+    p(
+      "For each throw you would like to save mark both the target and hit point 
+      on the board (using the radio buttons on the left to switch between the 
+      types of point to mark). Push ",
+      tags$em("Save throw!"),
+      " for saving that data point."
+    ),
+    p(
+      "After having saved all your throws you can download a csv-file of those 
+      data for later analysis or send those data to the analysis section of this 
+      app directly."
+    ),
     sidebarLayout(
       sidebarPanel(
         radioButtons(
@@ -93,6 +105,7 @@ collection_panel_server <- function(id) {
       output$dart_board <- renderPlot({
         raw_throws_plot_without_mean(data$collected, alpha = 0.5) +
           new_scale("color") +
+          new_scale("shape") +
           geom_point(data = board$points,
                      mapping = aes(x = x, y = y, color = type, shape = type),
                      size = 3,

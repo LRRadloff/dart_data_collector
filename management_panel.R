@@ -1,6 +1,11 @@
 management_panel_ui <- function(id, label = "management") {
   ns <- NS(id)
   tabPanel("Data management",
+    p(
+      "Here you can upload further data on throws you have collected in the past.
+      They must have the exact format produced by the collection panel of this 
+      app."
+    ),
     sidebarLayout(
       sidebarPanel(
         fileInput(ns("dart_throws_file"), "Upload saved dart throws",

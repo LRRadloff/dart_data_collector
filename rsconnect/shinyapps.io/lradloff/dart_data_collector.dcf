@@ -5,10 +5,10 @@ account: lradloff
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4281042
-bundleId: 4724459
+bundleId: 4744580
 url: https://lradloff.shinyapps.io/dart_data_collector/
-when: 1623869880.37394
-lastSyncTime: 1623869880.37394
+when: 1624388489.40707
+lastSyncTime: 1624388489.40707
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: test_throws

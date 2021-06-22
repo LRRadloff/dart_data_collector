@@ -6,27 +6,34 @@ test_panel_ui <- function(id, label = "testing") {
   ns <- NS(id)
   tabPanel("Statistical Testing",
            p(
-             "Here you can perform statistical hypothesis tests for the assumptions made in the ",
+             "Outcomes of statistical hypothesis tests for the assumptions made in
+             the ",
              tags$a("dart_optimizer", href="https://lradloff.shinyapps.io/dart_optimizer/"),
-             "."
+             "are given. For each assumption one or more tests are performed 
+             and p-values presented as their results. Note that all of those tests 
+             rely on certain assumptions."
            ),
            tabsetPanel(
              tabPanel("Normality",
-                "P-values for four different tests for multivariat normality are provided. Tests are performed using the MVN library. Have a look at the ",
-                tags$a("documentation", href="https://cran.r-project.org/web/packages/MVN/vignettes/MVN.pdf"),
-                "for more details.", 
+                "P-values for four different tests for multivariat normality are provided. Tests are performed using the ",
+                tags$a("MVN", href="https://cran.r-project.org/web/packages/MVN/vignettes/MVN.pdf"),
+                "library.", 
                 tableOutput(ns("mvn_p_values_table"))         
              ),
              tabPanel("Unbiasedness",
                 "P-values for t-tests for horizontal and vertical deviations, 
-                respectively, as well as for a Hotelling test. The latter tests 
-                for a multivariate mean having a particular value.",
+                respectively, as well as for a ",
+                tags$a("Hotelling test", href = "https://www.rdocumentation.org/packages/MVTests/versions/2.0.3/topics/OneSampleHT2"),
+                ". The latter tests for a multivariate mean having a particular 
+                value. In each case it is tested whether the mean is zero.",
                 tableOutput(ns("unbiased_p_value_table"))
              ),
              tabPanel("Uncorrelated Deviations",
                 "P-value for a test on the correlation between vertical and horizontal
                 deviations from target being zero. The test is based on a 
-                permutation procedure using the infer library.",
+                permutation procedure using the ",
+                tags$a("infer", href = "https://infer.netlify.app"),
+                " library.",
                 tableOutput(ns("zero_corr_p_value_table"))
              ),
              tabPanel("Homogenity of Standard Deviations",
@@ -72,7 +79,7 @@ test_panel_server <- function(id, analysis_data = NULL) {
                                     mu0 = c(0,0))$p.value
         bind_cols("t-test vertical" = p_t_vertical, 
                   "t-test horizontal" = p_t_horizontal,
-                  "hotelling" = p_hotelling)
+                  "Hotelling" = p_hotelling)
       })
       
       output$zero_corr_p_value_table <- renderTable({
